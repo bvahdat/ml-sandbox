@@ -19,10 +19,10 @@ y = train_data.Survived
 
 def create_pipeline(model):
     column_transformers = make_column_transformer(
-        (make_pipeline(SimpleImputer(), StandardScaler()), ["Age"]),
-        (make_pipeline(SimpleImputer(strategy='most_frequent'), OneHotEncoder()), ["Embarked"]),
-        (make_pipeline(OneHotEncoder()), ["Sex"]),
-        (make_pipeline(StandardScaler()), ["Fare"]),
+        (make_pipeline(SimpleImputer(), StandardScaler()), ['Age']),
+        (make_pipeline(SimpleImputer(strategy='most_frequent'), OneHotEncoder()), ['Embarked']),
+        (make_pipeline(OneHotEncoder()), ['Sex']),
+        (make_pipeline(StandardScaler()), ['Fare']),
         remainder='passthrough')
     return make_pipeline(column_transformers, model)
 
@@ -54,7 +54,7 @@ for model in [
     BaggingClassifier(KNeighborsClassifier(), max_samples=0.5, max_features=0.5),
     RandomForestClassifier(n_estimators=10),
     ExtraTreesClassifier(n_estimators=10, max_depth=None, min_samples_split=2, random_state=0),
-    SGDClassifier(loss="hinge", penalty="l2", max_iter=100)
+    SGDClassifier(loss='hinge', penalty='l2', max_iter=100)
 ]:
     train(X, y, model, scores_mean)
 
