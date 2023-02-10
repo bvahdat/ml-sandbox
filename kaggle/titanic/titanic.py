@@ -27,11 +27,11 @@ def create_pipeline(model):
     return make_pipeline(column_transformers, model)
 
 
-def train(X, y, model, scores_dict, cross_val=True):
+def train(X, y, model, scores_dict=None):
     pipeline = create_pipeline(model)
     cv = RepeatedStratifiedKFold(n_splits=10, n_repeats=3, random_state=1)
     model_name = type(model).__name__
-    if cross_val:
+    if scores_dict != None:
         scores = cross_val_score(pipeline, X, y, scoring='accuracy', cv=cv, n_jobs=-1)
         score_mean = scores.mean()
         score_std = scores.std()
@@ -61,12 +61,12 @@ for model in [
 best_model = max(scores_mean)
 print('Best model score is through {} with a mean of {}'.format(best_model, scores_mean[best_model]))
 
-# SVC seems to have the best score
+# SVC seems to achieve the best accuracy
 param_grid = {'C': [0.1, 1, 10, 100, 1000],
               'gamma': [1, 0.1, 0.01, 0.001, 0.0001],
               'kernel': ['rbf']}
 grid = GridSearchCV(SVC(), param_grid, refit=True)
-pipeline = train(X, y, grid, None, False)
+pipeline = train(X, y, grid)
 
 print('Best SVC params: {}'.format(grid.best_params_))
 print('Best SVC estimator: {}'.format(grid.best_estimator_))
@@ -78,7 +78,7 @@ X_test.ffill(inplace=True)
 y_test = pipeline.predict(X_test)
 
 passengerIds = test_data.PassengerId
-Survived = pd.Series(data=y_test)
-answer = pd.DataFrame({'PassengerId': passengerIds, 'Survived': Survived})
+survived = pd.Series(data=y_test)
+answer = pd.DataFrame({'PassengerId': passengerIds, 'Survived': survived})
 answer.to_csv('./submission.csv', index=False)
 print('Dumped submission.csv into the current folder')
