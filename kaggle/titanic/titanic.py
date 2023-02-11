@@ -36,11 +36,11 @@ def train(X, y, model, scores_dict=None):
         score_mean = scores.mean()
         score_std = scores.std()
         scores_dict[model_name] = score_mean
-        print('Model accuracy of the model {}: {} (+/- {})'.format(model_name, score_mean, score_std))
+        print(f'Accuracy of the model {model_name}: {score_mean} (+/- {score_std})')
     else:
         pipeline.fit(X, y)
         score = pipeline.score(X, y)
-        print('Score of the model {} with grid searched parameters is {}'.format(model_name, score))
+        print(f'Score of the model {model_name} with grid searched parameters is {score}')
         return pipeline
 
 
@@ -59,7 +59,7 @@ for model in [
     train(X, y, model, scores_mean)
 
 best_model = max(scores_mean)
-print('Best model score is through {} with a mean of {}'.format(best_model, scores_mean[best_model]))
+print(f'Best model score is through {best_model} with a mean of {scores_mean[best_model]}')
 
 # SVC seems to achieve the best accuracy
 param_grid = {'C': [0.1, 1, 10, 100, 1000],
@@ -68,8 +68,8 @@ param_grid = {'C': [0.1, 1, 10, 100, 1000],
 grid = GridSearchCV(SVC(), param_grid, refit=True)
 pipeline = train(X, y, grid)
 
-print('Best SVC params: {}'.format(grid.best_params_))
-print('Best SVC estimator: {}'.format(grid.best_estimator_))
+print(f'Best SVC params: {grid.best_params_}')
+print(f'Best SVC estimator: {grid.best_estimator_}')
 
 test_data = pd.read_csv('http://bit.ly/kaggletest')
 
