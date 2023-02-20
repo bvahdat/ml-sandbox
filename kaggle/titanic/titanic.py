@@ -1,9 +1,12 @@
+from os import linesep as LS
+
 import pandas as pd
 
 from sklearn.compose import make_column_transformer
 from sklearn.ensemble import BaggingClassifier, ExtraTreesClassifier, RandomForestClassifier
 from sklearn.impute import SimpleImputer
 from sklearn.linear_model import LogisticRegression, SGDClassifier
+from sklearn.metrics import classification_report, confusion_matrix
 from sklearn.model_selection import cross_val_score, GridSearchCV, RepeatedStratifiedKFold
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
@@ -22,8 +25,7 @@ def create_pipeline(model):
         (make_pipeline(SimpleImputer(), StandardScaler()), ['Age']),
         (make_pipeline(SimpleImputer(strategy='most_frequent'), OneHotEncoder()), ['Embarked']),
         (make_pipeline(OneHotEncoder()), ['Sex']),
-        (make_pipeline(StandardScaler()), ['Fare']),
-        remainder='passthrough')
+        (make_pipeline(StandardScaler()), ['Fare', 'SibSp', 'Parch', 'Pclass']))
     return make_pipeline(column_transformers, model)
 
 
@@ -36,11 +38,11 @@ def train(X, y, model, scores_dict=None):
         score_mean = scores.mean()
         score_std = scores.std()
         scores_dict[model_name] = score_mean
-        print(f'Accuracy of the model {model_name}: {score_mean} (+/- {score_std})')
+        print(f'accuracy of the model {model_name}: {score_mean:.3f} (+/- {score_std:.3f})')
     else:
         pipeline.fit(X, y)
         score = pipeline.score(X, y)
-        print(f'Score of the model {model_name} with grid searched parameters is {score}')
+        print(f'score of the model {model_name} with grid searched parameters is {score:.3f}')
         return pipeline
 
 
@@ -59,17 +61,20 @@ for model in [
     train(X, y, model, scores_mean)
 
 best_model = max(scores_mean)
-print(f'Best model score is through {best_model} with a mean of {scores_mean[best_model]}')
+print(f'best model score is through {best_model} with a mean of {scores_mean[best_model]:.3f}')
 
 # SVC seems to achieve the best accuracy
 param_grid = {'C': [0.1, 1, 10, 100, 1000],
               'gamma': [1, 0.1, 0.01, 0.001, 0.0001],
-              'kernel': ['rbf']}
+              'kernel': ['rbf', 'sigmoid']}
 grid = GridSearchCV(SVC(), param_grid, refit=True)
 pipeline = train(X, y, grid)
 
-print(f'Best SVC params: {grid.best_params_}')
-print(f'Best SVC estimator: {grid.best_estimator_}')
+print(f'best SVC grid searched estimator is: {grid.best_estimator_} with a mean cross-validated score of {grid.best_score_:.3f} and params {grid.best_params_}')
+
+y_pred = pipeline.predict(X)
+print('confusion matrix:', LS, confusion_matrix(y, y_pred))
+print('classification report:', LS, classification_report(y, y_pred))
 
 test_data = pd.read_csv('http://bit.ly/kaggletest')
 
