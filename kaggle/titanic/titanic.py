@@ -25,13 +25,14 @@ def create_pipeline(model):
         (make_pipeline(SimpleImputer(), StandardScaler()), ['Age']),
         (make_pipeline(SimpleImputer(strategy='most_frequent'), OneHotEncoder()), ['Embarked']),
         (make_pipeline(OneHotEncoder()), ['Sex']),
-        (make_pipeline(StandardScaler()), ['Fare', 'SibSp', 'Parch', 'Pclass']))
+        (make_pipeline(StandardScaler()), ['Fare']), # don't scale 'SibSp', 'Parch', 'Pclass' as it would reduce the accuracy on the test set!
+        remainder='passthrough')
     return make_pipeline(column_transformers, model)
 
 
 def train(X, y, model, scores_dict=None):
     pipeline = create_pipeline(model)
-    cv = RepeatedStratifiedKFold(n_splits=10, n_repeats=3, random_state=1)
+    cv = RepeatedStratifiedKFold(n_splits=10, random_state=1)
     model_name = type(model).__name__
     if scores_dict != None:
         scores = cross_val_score(pipeline, X, y, scoring='accuracy', cv=cv, n_jobs=-1)
@@ -82,8 +83,8 @@ X_test = test_data.drop(columns=['PassengerId', 'Name', 'Ticket', 'Cabin'])
 X_test.ffill(inplace=True)
 y_test = pipeline.predict(X_test)
 
-passengerIds = test_data.PassengerId
+passengerId = test_data.PassengerId
 survived = pd.Series(data=y_test)
-answer = pd.DataFrame({'PassengerId': passengerIds, 'Survived': survived})
+answer = pd.DataFrame({'PassengerId': passengerId, 'Survived': survived})
 answer.to_csv('./submission.csv', index=False)
 print('Dumped submission.csv into the current folder')
