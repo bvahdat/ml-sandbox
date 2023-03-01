@@ -13,6 +13,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.svm import SVC, NuSVC, LinearSVC
+from xgboost import XGBClassifier
 
 train_data = pd.read_csv('http://bit.ly/kaggletrain')
 
@@ -32,7 +33,7 @@ def create_pipeline(model):
 
 def train(X, y, model, scores_dict=None):
     pipeline = create_pipeline(model)
-    cv = RepeatedStratifiedKFold(n_splits=10, random_state=1)
+    cv = RepeatedStratifiedKFold(n_splits=10)
     model_name = type(model).__name__
     if scores_dict != None:
         scores = cross_val_score(pipeline, X, y, scoring='accuracy', cv=cv, n_jobs=-1)
@@ -54,10 +55,11 @@ for model in [
     LinearSVC(max_iter=4000),
     LogisticRegression(),
     GaussianNB(),
-    BaggingClassifier(KNeighborsClassifier(), max_samples=0.5, max_features=0.5),
-    RandomForestClassifier(n_estimators=10),
-    ExtraTreesClassifier(n_estimators=10, max_depth=None, min_samples_split=2, random_state=0),
-    SGDClassifier(loss='hinge', penalty='l2', max_iter=100)
+    BaggingClassifier(KNeighborsClassifier(n_neighbors=3)),
+    RandomForestClassifier(n_estimators=2000),
+    ExtraTreesClassifier(n_estimators=2000),
+    SGDClassifier(max_iter=4000),
+    XGBClassifier(n_estimators=2000)
 ]:
     train(X, y, model, scores_mean)
 
