@@ -92,7 +92,7 @@ print(f'best model score is through {scores_mean[best_score]} with a mean of {be
 param_grid = {'C': [0.1, 1, 10, 100, 1000],
               'gamma': [1, 0.1, 0.01, 0.001, 0.0001],
               'kernel': ['rbf', 'sigmoid']}
-grid = GridSearchCV(SVC(), param_grid, refit=True)
+grid = GridSearchCV(SVC(), param_grid)
 pipeline = train(X, y, grid)
 
 print(f'best SVC grid searched estimator is: {grid.best_estimator_} with a mean cross-validated score of {grid.best_score_:.3f} and params {grid.best_params_}')
