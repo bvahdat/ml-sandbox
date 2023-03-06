@@ -6,8 +6,7 @@ from sklearn.compose import make_column_transformer
 from sklearn.ensemble import BaggingClassifier, ExtraTreesClassifier, RandomForestClassifier
 from sklearn.impute import SimpleImputer
 from sklearn.linear_model import LogisticRegression, SGDClassifier
-from sklearn.metrics import classification_report, confusion_matrix
-from sklearn.model_selection import cross_val_score, GridSearchCV, RepeatedStratifiedKFold
+from sklearn.model_selection import cross_val_score, GridSearchCV, StratifiedKFold
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.pipeline import make_pipeline
@@ -26,7 +25,8 @@ def prepare_features(train_df, test_df):
     for dataframe in [train_df, test_df]:
         copy = dataframe.copy()
         copy['Title'] = copy.Name.str.extract('([A-Za-z]+)\.', expand=False)
-        copy['Title'] = copy['Title'].replace(['Lady', 'Countess', 'Capt', 'Col', 'Don', 'Dr', 'Major', 'Rev', 'Sir', 'Jonkheer', 'Dona'], 'Infrequent')
+        copy['Title'] = copy['Title'].replace(
+            ['Lady', 'Countess', 'Capt', 'Col', 'Don', 'Dr', 'Major', 'Rev', 'Sir', 'Jonkheer', 'Dona'], 'Infrequent')
         copy['Title'] = copy['Title'].replace('Mlle', 'Miss')
         copy['Title'] = copy['Title'].replace('Ms', 'Miss')
         copy['Title'] = copy['Title'].replace('Mme', 'Mrs')
@@ -40,71 +40,94 @@ X, X_test = prepare_features(train_data, test_data)
 # drop the target label from the training set
 X.drop(columns=['Survived'], inplace=True)
 
-# drop that one single test sample at index 152 with Fare = NaN
+# ffill that test sample at index 152 with missing Fare value
 X_test.ffill(inplace=True)
 
 
-def create_pipeline(model):
+def create_pipeline():
     column_transformers = make_column_transformer(
         (make_pipeline(SimpleImputer(), StandardScaler()), ['Age']),
         (make_pipeline(SimpleImputer(strategy='most_frequent'), OneHotEncoder()), ['Embarked']),
         (make_pipeline(OneHotEncoder()), ['Sex', 'Title']),
         (make_pipeline(StandardScaler()), ['Fare', 'Parch', 'Pclass', 'SibSp']))
-    return make_pipeline(column_transformers, model)
+    return make_pipeline(column_transformers)
 
 
-def train(X, y, model, scores_dict=None):
-    pipeline = create_pipeline(model)
-    cv = RepeatedStratifiedKFold(n_splits=10)
+def evaluate_model_using_nested_cross_validation(model, param_grid, X, y, scores_dict):
+    inner_cv = StratifiedKFold(shuffle=True)
+    outer_cv = StratifiedKFold(shuffle=True)
+    clf = GridSearchCV(estimator=model, param_grid=param_grid, cv=inner_cv)
+    scores = cross_val_score(clf, X=X, y=y, cv=outer_cv, n_jobs=-1, error_score='raise')
     model_name = type(model).__name__
-    if scores_dict != None:
-        scores = cross_val_score(pipeline, X, y, scoring='accuracy', cv=cv, n_jobs=-1)
-        score_mean = scores.mean()
-        score_std = scores.std()
-        scores_dict[score_mean] = model_name
-        print(f'accuracy of the model {model_name}: {score_mean:.3f} (+/- {score_std:.3f})')
-    else:
-        pipeline.fit(X, y)
-        score = pipeline.score(X, y)
-        print(f'score of the model {model_name} with grid searched parameters is {score:.3f}')
-        return pipeline
+    scores_mean = scores.mean()
+    scores_std = scores.std()
+    scores_dict[scores_mean] = model
+    print(f'accuracy of the model {model_name}: {scores_mean:.3f} (+/- {scores_std:.3f})')
 
+
+pipeline = create_pipeline()
+X = pipeline.fit_transform(X)
+y = y.to_numpy()
+
+models = [
+    ExtraTreesClassifier(),
+    GaussianNB(),
+    LogisticRegression(),
+    RandomForestClassifier(),
+    SVC(),
+    XGBClassifier()
+]
+
+models_param_grid = [
+    {
+        'criterion': ['gini', 'entropy', 'log_loss'],
+        'n_estimators': [2000]
+    },
+    {
+        'var_smoothing': [1e-7, 1e-8, 1e-9, 1e-10, 1e-11]
+    },
+    {
+        'C': [.01, .1, 1, 10, 100],
+        'max_iter': [4000]
+    },
+    {
+        'bootstrap': [True, False],
+        'min_samples_leaf': [1, 2, 4],
+        'min_samples_split': [2, 5, 10],
+        'n_estimators': [2000]
+    },
+    {
+        'C': [.01, .1, 1, 10, 100],
+        'degree': [2, 3, 4, 5],
+        'gamma': [.0001, .001, .01, .1, 1],
+        'kernel': ['linear', 'poly', 'rbf', 'sigmoid']
+    },
+    {
+        'colsample_bytree': [0.3, 0.5, 0.8],
+        'reg_alpha': [0, 0.5, 1, 5],
+        'reg_lambda': [0, 0.5, 1, 5],
+        'n_estimators': [2000]
+    }
+]
 
 scores_mean = {}
-for model in [
-    BaggingClassifier(KNeighborsClassifier(n_neighbors=3)),
-    ExtraTreesClassifier(n_estimators=2000),
-    GaussianNB(),
-    LinearSVC(max_iter=4000),
-    LogisticRegression(),
-    NuSVC(),
-    RandomForestClassifier(n_estimators=2000),
-    SGDClassifier(max_iter=4000),
-    SVC(),
-    XGBClassifier(n_estimators=2000)
-]:
-    train(X, y, model, scores_mean)
 
-best_score = max(scores_mean)
-print(f'best model score is through {scores_mean[best_score]} with a mean of {best_score:.3f}')
+for model, param_grid in zip(models, models_param_grid):
+    evaluate_model_using_nested_cross_validation(model, param_grid, X, y, scores_mean)
 
-# SVC seems to achieve the best accuracy
-param_grid = {'C': [0.1, 1, 10, 100, 1000],
-              'gamma': [1, 0.1, 0.01, 0.001, 0.0001],
-              'kernel': ['rbf', 'sigmoid']}
-grid = GridSearchCV(SVC(), param_grid)
-pipeline = train(X, y, grid)
+final_score = max(scores_mean)
+final_model = scores_mean[final_score]
+final_model_name = type(final_model).__name__
+print(f'best model score is through: {final_model_name} with a mean accuracy of: {final_score:.3f} and parameters: {final_model.get_params()}')
 
-print(f'best SVC grid searched estimator is: {grid.best_estimator_} with a mean cross-validated score of {grid.best_score_:.3f} and params {grid.best_params_}')
+final_model = scores_mean[final_score]
+final_model.fit(X, y)
 
-y_pred = pipeline.predict(X)
-print('confusion matrix:', LS, confusion_matrix(y, y_pred))
-print('classification report:', LS, classification_report(y, y_pred))
-
-y_test = pipeline.predict(X_test)
+X_test = pipeline.transform(X_test)
+y_test = final_model.predict(X_test)
 
 passengerId = test_data.PassengerId
 survived = pd.Series(data=y_test)
 answer = pd.DataFrame({'PassengerId': passengerId, 'Survived': survived})
 answer.to_csv('./submission.csv', index=False)
-print('Dumped submission.csv into the current folder')
+print('dumped submission.csv into the current folder')
