@@ -1,5 +1,3 @@
-from os import linesep as LS
-
 import pandas as pd
 
 from sklearn.compose import make_column_transformer
@@ -19,8 +17,7 @@ def prepare_features(train_df, test_df):
     for dataframe in [train_df, test_df]:
         copy = dataframe.copy()
         copy['Title'] = copy.Name.str.extract('([A-Za-z]+)\.', expand=False)
-        copy['Title'] = copy['Title'].replace(
-            ['Lady', 'Countess', 'Capt', 'Col', 'Don', 'Dr', 'Major', 'Rev', 'Sir', 'Jonkheer', 'Dona'], 'Infrequent')
+        copy['Title'] = copy['Title'].replace(['Lady', 'Countess', 'Capt', 'Col', 'Don', 'Dr', 'Major', 'Rev', 'Sir', 'Jonkheer', 'Dona'], 'Infrequent')
         copy['Title'] = copy['Title'].replace('Mlle', 'Miss')
         copy['Title'] = copy['Title'].replace('Ms', 'Miss')
         copy['Title'] = copy['Title'].replace('Mme', 'Mrs')
@@ -39,48 +36,39 @@ def create_pipeline():
 
 
 def get_models():
-    models = [
-        ExtraTreesClassifier(),
-        GaussianNB(),
-        LogisticRegression(),
-        RandomForestClassifier(),
-        SVC(),
-        XGBClassifier()
-    ]
-
-    models_param_grid = [
-        {
+    models = {
+        'ExtraTreesClassifier': (ExtraTreesClassifier(), {
             'criterion': ['gini', 'entropy', 'log_loss'],
             'n_estimators': [2000]
-        },
-        {
+        }),
+        'GaussianNB': (GaussianNB(), {
             'var_smoothing': [1e-7, 1e-8, 1e-9, 1e-10, 1e-11]
-        },
-        {
+        }),
+        'LogisticRegression':   (LogisticRegression(), {
             'C': [.01, .1, 1, 10, 100],
             'max_iter': [4000]
-        },
-        {
+        }),
+        'RandomForestClassifier': (RandomForestClassifier(), {
             'bootstrap': [True, False],
             'min_samples_leaf': [1, 2, 4],
             'min_samples_split': [2, 5, 10],
             'n_estimators': [2000]
-        },
-        {
+        }),
+        'SVC': (SVC(), {
             'C': [.01, .1, 1, 10, 100],
             'degree': [2, 3, 4, 5],
             'gamma': [.0001, .001, .01, .1, 1],
             'kernel': ['linear', 'poly', 'rbf', 'sigmoid']
-        },
-        {
+        }),
+        'XGBClassifier': (XGBClassifier(), {
             'colsample_bytree': [0.3, 0.5, 0.8],
             'reg_alpha': [0, 0.5, 1, 5],
             'reg_lambda': [0, 0.5, 1, 5],
             'n_estimators': [2000]
-        }
-    ]
+        })
+    }
 
-    return zip(models, models_param_grid)
+    return models
 
 
 def evaluate_models_using_nested_cross_validation(model, param_grid, X, y, scores_dict):
@@ -117,7 +105,7 @@ X, X_test = prepare_features(train_data, test_data)
 # drop the target label from the training set
 X.drop(columns=['Survived'], inplace=True)
 
-# ffill that test sample at index 152 with missing Fare value
+# ffill that single test sample at index 152 with missing Fare value
 X_test.ffill(inplace=True)
 
 pipeline = create_pipeline()
@@ -126,7 +114,7 @@ y = y.to_numpy()
 
 scores_mean = {}
 models = get_models()
-for model, param_grid in models:
+for model, param_grid in models.values():
     evaluate_models_using_nested_cross_validation(model, param_grid, X, y, scores_mean)
 
 best_score = max(scores_mean)
@@ -134,8 +122,7 @@ best_model = scores_mean[best_score]
 best_model_name = type(best_model).__name__
 print(f'best model score is through: {best_model_name} with a mean accuracy of: {best_score:.3f}')
 
-# SVC seems to achieve the best accuracy, so let's find out it's optimal hyperparameters
-model, param_grid = list(get_models())[4]
+model, param_grid = models.get(best_model_name)
 final_model = find_model_hyperparameters_using_cross_validation(model, param_grid, X, y)
 
 X_test = pipeline.transform(X_test)
