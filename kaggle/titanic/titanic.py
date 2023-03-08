@@ -2,7 +2,7 @@ import pandas as pd
 
 from sklearn.compose import make_column_transformer
 from sklearn.ensemble import ExtraTreesClassifier, RandomForestClassifier
-from sklearn.impute import SimpleImputer
+from sklearn.impute import KNNImputer, SimpleImputer
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import cross_val_score, GridSearchCV, StratifiedKFold
 from sklearn.naive_bayes import GaussianNB
@@ -28,7 +28,7 @@ def prepare_features(train_df, test_df):
 
 def create_pipeline():
     column_transformers = make_column_transformer(
-        (make_pipeline(SimpleImputer(), StandardScaler()), ['Age']),
+        (make_pipeline(KNNImputer(), StandardScaler()), ['Age']),
         (make_pipeline(SimpleImputer(strategy='most_frequent'), OneHotEncoder()), ['Embarked']),
         (make_pipeline(OneHotEncoder()), ['Sex', 'Title']),
         (make_pipeline(StandardScaler()), ['Fare', 'Parch', 'Pclass', 'SibSp']))
