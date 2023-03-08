@@ -93,8 +93,8 @@ def find_model_hyperparameters_using_cross_validation(model, param_grid, X, y):
     return grid.best_estimator_
 
 
-train_data = pd.read_csv('http://bit.ly/kaggletrain')
-test_data = pd.read_csv('http://bit.ly/kaggletest')
+train_data = pd.read_csv('./train.csv')
+test_data = pd.read_csv('./test.csv')
 
 y = train_data.Survived
 
