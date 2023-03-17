@@ -8,6 +8,7 @@ from sklearn.impute import KNNImputer, SimpleImputer
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import cross_val_score, GridSearchCV, StratifiedKFold
 from sklearn.naive_bayes import GaussianNB
+from sklearn.neighbors import LocalOutlierFactor
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.svm import SVC
@@ -31,11 +32,11 @@ def prepare_features(*dataframes):
 
 def create_pipeline():
     column_transformers = make_column_transformer(
-        (make_pipeline(KNNImputer(), StandardScaler()), ['Age']),
+        (make_pipeline(KNNImputer()), ['Age']),
         (make_pipeline(SimpleImputer(strategy='most_frequent'), OneHotEncoder()), ['Embarked']),
         (make_pipeline(NameTransformer(), OneHotEncoder()), ['Name']),
         (make_pipeline(OneHotEncoder()), ['Sex']),
-        (make_pipeline(StandardScaler()), ['Fare', 'Parch', 'Pclass', 'SibSp']))
+        remainder='passthrough')
     return make_pipeline(column_transformers)
 
 
@@ -109,6 +110,16 @@ pipeline = create_pipeline()
 X = pipeline.fit_transform(X)
 y = y.to_numpy()
 
+# identify and remove the outliers
+print(f'X: {X.shape}, y: {y.shape} before the outlier detection')
+mask =  LocalOutlierFactor().fit_predict(X) != -1
+X, y = X[mask, :], y[mask]
+print(f'X: {X.shape}, y: {y.shape} after the outlier detection')
+
+# as the last preprocessing step do scale the training set
+scaler = StandardScaler()
+X = scaler.fit_transform(X)
+
 scores_mean = {}
 models = get_models()
 for model, param_grid in models.values():
@@ -123,6 +134,7 @@ model, param_grid = models.get(best_model_name)
 final_model = find_model_hyperparameters_using_cross_validation(model, param_grid, X, y)
 
 X_test = pipeline.transform(X_test)
+X_test = scaler.transform(X_test)
 y_test = final_model.predict(X_test)
 
 passengerId = test_data.PassengerId
