@@ -79,7 +79,7 @@ def get_models():
 
 def evaluate_models_using_nested_cross_validation(model, param_grid, X, y, scores_dict):
     # sequential execution by the inner loop
-    clf = GridSearchCV(estimator=model, param_grid=param_grid, cv=StratifiedKFold(n_splits=10, shuffle=True))
+    clf = GridSearchCV(estimator=model, param_grid=param_grid, cv=StratifiedKFold(n_splits=10, shuffle=True), error_score='raise')
 
     # parallel execution by the outer loop
     scores = cross_val_score(clf, X=X, y=y, cv=StratifiedKFold(n_splits=10, shuffle=True), n_jobs=-1, error_score='raise')
@@ -93,7 +93,7 @@ def evaluate_models_using_nested_cross_validation(model, param_grid, X, y, score
 
 def find_model_hyperparameters_using_cross_validation(model, param_grid, X, y):
     # parallel execution
-    grid = GridSearchCV(model, param_grid, cv=StratifiedKFold(n_splits=10, shuffle=True), n_jobs=-1)
+    grid = GridSearchCV(model, param_grid, cv=StratifiedKFold(n_splits=10, shuffle=True), n_jobs=-1, error_score='raise')
     grid.fit(X, y)
     print(f'best grid searched estimator is: {grid.best_estimator_} with a mean cross-validated score of {grid.best_score_:.3f} and params {grid.best_params_}')
     return grid.best_estimator_
