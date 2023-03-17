@@ -98,8 +98,8 @@ def find_model_hyperparameters_using_cross_validation(model, param_grid, X, y):
     return grid.best_estimator_
 
 
-train_data = pd.read_csv('./train.csv')
-test_data = pd.read_csv('./test.csv')
+train_data = pd.read_csv('data/train.csv')
+test_data = pd.read_csv('data/test.csv')
 
 y = train_data.Survived
 
@@ -140,5 +140,5 @@ y_test = final_model.predict(X_test)
 passengerId = test_data.PassengerId
 survived = pd.Series(data=y_test)
 answer = pd.DataFrame({'PassengerId': passengerId, 'Survived': survived})
-answer.to_csv('./submission.csv', index=False)
+answer.to_csv('data/submission.csv', index=False)
 print('dumped submission.csv into the current folder')
