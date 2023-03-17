@@ -18,15 +18,16 @@ from xgboost import XGBClassifier
 def prepare_features(*dataframes):
     prepared = []
     for df in dataframes:
+        df = df.copy()
         obsolete_columns = ['PassengerId', 'Ticket', 'Cabin']
         if 'Survived' in df.columns:
             # drop the target label from the training set
             obsolete_columns.append('Survived')
         else:
             # ffill that single test sample at index 152 with the missing Fare value
-            dropped = df.ffill()
-        dropped = df.drop(columns=obsolete_columns)
-        prepared.append(dropped)
+            df.ffill(inplace=True)
+        df.drop(columns=obsolete_columns, inplace=True)
+        prepared.append(df)
     return prepared
 
 
@@ -110,7 +111,7 @@ pipeline = create_pipeline()
 X = pipeline.fit_transform(X)
 y = y.to_numpy()
 
-# identify and remove the outliers
+# identify and remove the outliers outside the pipeline above, see https://github.com/scikit-learn/scikit-learn/issues/9630
 print(f'X: {X.shape}, y: {y.shape} before the outlier detection')
 mask =  LocalOutlierFactor().fit_predict(X) != -1
 X, y = X[mask, :], y[mask]
