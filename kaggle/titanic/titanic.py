@@ -102,18 +102,15 @@ def find_model_hyperparameters_using_cross_validation(model, param_grid, X, y):
 train_data = pd.read_csv('data/train.csv')
 test_data = pd.read_csv('data/test.csv')
 
-y = train_data.Survived
-
 X, X_test = prepare_features(train_data, test_data)
-
 
 pipeline = create_pipeline()
 X = pipeline.fit_transform(X)
-y = y.to_numpy()
+y = train_data.Survived.to_numpy()
 
 # identify and remove the outliers outside the pipeline above, see https://github.com/scikit-learn/scikit-learn/issues/9630
 print(f'X: {X.shape}, y: {y.shape} before the outlier detection')
-mask =  LocalOutlierFactor().fit_predict(X) != -1
+mask = LocalOutlierFactor().fit_predict(X) != -1
 X, y = X[mask, :], y[mask]
 print(f'X: {X.shape}, y: {y.shape} after the outlier detection')
 
