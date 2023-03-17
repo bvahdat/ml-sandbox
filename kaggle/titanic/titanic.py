@@ -1,3 +1,5 @@
+from name_transformer import NameTransformer
+
 import pandas as pd
 
 from sklearn.compose import make_column_transformer
@@ -12,17 +14,18 @@ from sklearn.svm import SVC
 from xgboost import XGBClassifier
 
 
-def prepare_features(train_df, test_df):
+def prepare_features(*dataframes):
     prepared = []
-    for dataframe in [train_df, test_df]:
-        copy = dataframe.copy()
-        copy['Title'] = copy.Name.str.extract('([A-Za-z]+)\.', expand=False)
-        copy['Title'] = copy['Title'].replace(['Lady', 'Countess', 'Capt', 'Col', 'Don', 'Dr', 'Major', 'Rev', 'Sir', 'Jonkheer', 'Dona'], 'Infrequent')
-        copy['Title'] = copy['Title'].replace('Mlle', 'Miss')
-        copy['Title'] = copy['Title'].replace('Ms', 'Miss')
-        copy['Title'] = copy['Title'].replace('Mme', 'Mrs')
-        copy.drop(columns=['PassengerId', 'Name', 'Ticket', 'Cabin'], inplace=True)
-        prepared.append(copy)
+    for df in dataframes:
+        obsolete_columns = ['PassengerId', 'Ticket', 'Cabin']
+        if 'Survived' in df.columns:
+            # drop the target label from the training set
+            obsolete_columns.append('Survived')
+        else:
+            # ffill that single test sample at index 152 with the missing Fare value
+            dropped = df.ffill()
+        dropped = df.drop(columns=obsolete_columns)
+        prepared.append(dropped)
     return prepared
 
 
@@ -30,7 +33,8 @@ def create_pipeline():
     column_transformers = make_column_transformer(
         (make_pipeline(KNNImputer(), StandardScaler()), ['Age']),
         (make_pipeline(SimpleImputer(strategy='most_frequent'), OneHotEncoder()), ['Embarked']),
-        (make_pipeline(OneHotEncoder()), ['Sex', 'Title']),
+        (make_pipeline(NameTransformer(), OneHotEncoder()), ['Name']),
+        (make_pipeline(OneHotEncoder()), ['Sex']),
         (make_pipeline(StandardScaler()), ['Fare', 'Parch', 'Pclass', 'SibSp']))
     return make_pipeline(column_transformers)
 
@@ -100,11 +104,6 @@ y = train_data.Survived
 
 X, X_test = prepare_features(train_data, test_data)
 
-# drop the target label from the training set
-X.drop(columns=['Survived'], inplace=True)
-
-# ffill that single test sample at index 152 with missing Fare value
-X_test.ffill(inplace=True)
 
 pipeline = create_pipeline()
 X = pipeline.fit_transform(X)
