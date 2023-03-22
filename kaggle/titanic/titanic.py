@@ -1,24 +1,29 @@
+from os import linesep as LS
+
 from name_transformer import NameTransformer
 
+import numpy as np
 import pandas as pd
 
 from sklearn.compose import make_column_transformer
-from sklearn.ensemble import ExtraTreesClassifier, RandomForestClassifier
+from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.impute import KNNImputer, SimpleImputer
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import cross_val_score, GridSearchCV, StratifiedKFold
 from sklearn.naive_bayes import GaussianNB
-from sklearn.neighbors import LocalOutlierFactor
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.svm import SVC
-from xgboost import XGBClassifier
 
 
 def prepare_features(*dataframes):
     prepared = []
     for df in dataframes:
         df = df.copy()
+
+        # Pclass is a categorical feature
+        df.Pclass = df.Pclass.astype('category')
+
         obsolete_columns = ['PassengerId', 'Ticket', 'Cabin']
         if 'Survived' in df.columns:
             # drop the target label from the training set
@@ -26,18 +31,26 @@ def prepare_features(*dataframes):
         else:
             # ffill that single test sample at index 152 with the missing Fare value
             df.ffill(inplace=True)
+
         df.drop(columns=obsolete_columns, inplace=True)
+
+        # try to fix the feature skewness as much as possible to achieve a gaussian distribution
+        print('feature skewness before transformation:', LS, df.skew(numeric_only=True))
+        df.Age = df.Age ** (1/1.27)
+        df.Fare = np.log(df.Fare + .45)
+        print('feature skewness after transformation:', LS, df.skew(numeric_only=True))
+
         prepared.append(df)
     return prepared
 
 
 def create_pipeline():
     column_transformers = make_column_transformer(
-        (make_pipeline(KNNImputer()), ['Age']),
         (make_pipeline(SimpleImputer(strategy='most_frequent'), OneHotEncoder()), ['Embarked']),
         (make_pipeline(NameTransformer(), OneHotEncoder()), ['Name']),
-        (make_pipeline(OneHotEncoder()), ['Sex']),
-        remainder='passthrough')
+        (make_pipeline(KNNImputer(), StandardScaler()), ['Age']),
+        (make_pipeline(OneHotEncoder()), ['Pclass', 'Sex']),
+        (make_pipeline(StandardScaler()), ['Fare', 'Parch', 'SibSp']))
     return make_pipeline(column_transformers)
 
 
@@ -54,23 +67,10 @@ def get_models():
             'C': [.01, .1, 1, 10, 100],
             'max_iter': [4000]
         }),
-        'RandomForestClassifier': (RandomForestClassifier(), {
-            'bootstrap': [True, False],
-            'min_samples_leaf': [1, 2, 4],
-            'min_samples_split': [2, 5, 10],
-            'n_estimators': [2000]
-        }),
         'SVC': (SVC(), {
             'C': [.01, .1, 1, 10, 100],
-            'degree': [2, 3, 4, 5],
             'gamma': [.0001, .001, .01, .1, 1],
-            'kernel': ['linear', 'poly', 'rbf', 'sigmoid']
-        }),
-        'XGBClassifier': (XGBClassifier(), {
-            'colsample_bytree': [0.3, 0.5, 0.8],
-            'reg_alpha': [0, 0.5, 1, 5],
-            'reg_lambda': [0, 0.5, 1, 5],
-            'n_estimators': [2000]
+            'kernel': ['linear', 'rbf', 'sigmoid']
         })
     }
 
@@ -108,16 +108,6 @@ pipeline = create_pipeline()
 X = pipeline.fit_transform(X)
 y = train_data.Survived.to_numpy()
 
-# identify and remove the outliers outside the pipeline above, see https://github.com/scikit-learn/scikit-learn/issues/9630
-print(f'X: {X.shape}, y: {y.shape} before the outlier detection')
-mask = LocalOutlierFactor().fit_predict(X) != -1
-X, y = X[mask, :], y[mask]
-print(f'X: {X.shape}, y: {y.shape} after the outlier detection')
-
-# as the last preprocessing step do scale the training set
-scaler = StandardScaler()
-X = scaler.fit_transform(X)
-
 scores_mean = {}
 models = get_models()
 for model, param_grid in models.values():
@@ -132,7 +122,6 @@ model, param_grid = models.get(best_model_name)
 final_model = find_model_hyperparameters_using_cross_validation(model, param_grid, X, y)
 
 X_test = pipeline.transform(X_test)
-X_test = scaler.transform(X_test)
 y_test = final_model.predict(X_test)
 
 passengerId = test_data.PassengerId
