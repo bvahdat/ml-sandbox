@@ -1,3 +1,7 @@
+# What is this codebase about?
+
+See [here](https://www.kaggle.com/c/titanic).
+
 # How to run
 
 I use [miniconda](https://docs.conda.io/en/latest/miniconda.html) through [Homebrew](https://formulae.brew.sh/cask/miniconda) on my Mac to setup the required environment:
@@ -51,4 +55,4 @@ Finally you can remove the created environment above if you want:
 conda remove --name titanic --all
 ```
 
-The currently achieved accuracy is around `.78229`.
+The achieved accuracy score is `.78229`.

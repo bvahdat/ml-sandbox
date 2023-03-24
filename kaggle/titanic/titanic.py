@@ -41,6 +41,7 @@ def prepare_features(*dataframes):
         print('feature skewness after transformation:', LS, df.skew(numeric_only=True))
 
         prepared.append(df)
+
     return prepared
 
 
@@ -51,7 +52,8 @@ def create_pipeline():
         (make_pipeline(KNNImputer(), StandardScaler()), ['Age']),
         (make_pipeline(OneHotEncoder()), ['Pclass', 'Sex']),
         (make_pipeline(StandardScaler()), ['Fare', 'Parch', 'SibSp']))
-    return make_pipeline(column_transformers)
+
+    return column_transformers
 
 
 def get_models():
@@ -96,6 +98,7 @@ def find_model_hyperparameters_using_cross_validation(model, param_grid, X, y):
     grid = GridSearchCV(model, param_grid, cv=StratifiedKFold(n_splits=10, shuffle=True), n_jobs=-1, error_score='raise')
     grid.fit(X, y)
     print(f'best grid searched estimator is: {grid.best_estimator_} with a mean cross-validated score of {grid.best_score_:.3f} and params {grid.best_params_}')
+
     return grid.best_estimator_
 
 
