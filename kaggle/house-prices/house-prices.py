@@ -3,12 +3,14 @@ from os import linesep as LS
 import numpy as np
 import pandas as pd
 
+from scipy.stats import randint, uniform
+
 from skewed_transformer import SkewedTransformer
 
 from sklearn import set_config
 from sklearn.compose import make_column_transformer, make_column_selector
 from sklearn.impute import KNNImputer
-from sklearn.model_selection import cross_val_score, KFold
+from sklearn.model_selection import RandomizedSearchCV
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
@@ -73,61 +75,43 @@ def create_pipeline():
                                    (make_pipeline(OneHotEncoder(sparse_output=False)), make_column_selector(dtype_include='category')))
 
 
-def get_models():
-    catboost_params = {
-        'iterations': 6000,
-        'learning_rate': .005,
-        'depth': 4,
-        'l2_leaf_reg': 1,
-        'eval_metric': 'RMSE',
-        'early_stopping_rounds': 200,
-        'random_seed': 42}
+def create_models(X, y):
+    catboost_params_search_space = dict(iterations=randint(5000, 7000),
+                                        learning_rate=uniform(loc=.003, scale=.004),
+                                        depth=randint(3, 5))
 
-    br_params = {
-        'n_iter': 304,
-        'tol': .16864712769300896,
-        'alpha_1': 5.589616542154059e-07,
-        'alpha_2': 9.799343618469923,
-        'lambda_1': 1.7735725582463822,
-        'lambda_2': 3.616928181181732e-06
+    br_params_search_space = dict(n_iter=randint(250, 350),
+                                  tol=uniform(loc=.1, scale=.2),
+                                  alpha_1=uniform(loc=3.0, scale=6.0),
+                                  alpha_2=uniform(loc=7.0, scale=12.0),
+                                  lambda_1=uniform(loc=1.0, scale=2.0),
+                                  lambda_2=uniform(loc=3.0, scale=5.0))
+
+    lightgbm_params_search_space = dict(num_leaves=randint(40, 50),
+                                        max_depth=randint(1, 3),
+                                        learning_rate=uniform(loc=.1, scale=.2),
+                                        n_estimators=randint(250, 300))
+
+    ridge_params_search_space = dict(alpha=uniform(loc=600.0, scale=100.0))
+
+    omp_params_search_space = dict(n_nonzero_coefs=randint(10, 20))
+
+    models_search_space = {
+        'CatBoostRegressor': (CatBoostRegressor(eval_metric='RMSE', verbose=0), catboost_params_search_space),
+        'BayesianRidge': (BayesianRidge(), br_params_search_space),
+        'LGBMRegressor': (LGBMRegressor(), lightgbm_params_search_space),
+        'Ridge': (Ridge(), ridge_params_search_space),
+        'OrthogonalMatchingPursuit': (OrthogonalMatchingPursuit(), omp_params_search_space)
     }
 
-    lightgbm_params = {
-        'num_leaves': 39,
-        'max_depth': 2,
-        'learning_rate': .13705339989856127,
-        'n_estimators': 273
-    }
-
-    ridge_params = {
-        'alpha': 631.1412445239156
-    }
-
-    models = {
-        'CatBoostRegressor': CatBoostRegressor(**catboost_params, verbose=0),
-        'BayesianRidge': BayesianRidge(**br_params),
-        'LGBMRegressor': LGBMRegressor(**lightgbm_params),
-        'Ridge': Ridge(**ridge_params),
-        'OrthogonalMatchingPursuit': OrthogonalMatchingPursuit()
-    }
+    models = {}
+    for model_name, model_params in models_search_space.items():
+        clf = RandomizedSearchCV(model_params[0], model_params[1], scoring='neg_mean_squared_error')
+        search = clf.fit(X, y)
+        models[model_name] = search.best_estimator_
+        print(f'RMSE of the model {model_name}: {-search.best_score_:.3f} using the params: ({search.best_params_})')
 
     return models
-
-
-def train(models, X, y):
-    for name, model in models.items():
-        model.fit(X, y)
-        print(f'the model {name} has been trained')
-
-
-def evaluate_models(models, X, y):
-    results = {}
-    for name, model in models.items():
-        result = np.exp(np.sqrt(-cross_val_score(model, X, y, scoring='neg_mean_squared_error', cv=KFold(n_splits=10, shuffle=True))))
-        results[name] = result
-
-    for name, result in results.items():
-        print(f'accuracy of the model {name}: {result.mean():.3f} (+/- {result.std():.3f})')
 
 
 train_data = pd.read_csv('data/train.csv')
@@ -147,9 +131,7 @@ y = train_data.SalePrice.to_numpy()
 # target log transformation
 y = np.log(y)
 
-models = get_models()
-train(models, X, y)
-evaluate_models(models, X, y)
+models = create_models(X, y)
 
 X_test = X_all[train_data_len:, :]
 predictions = (
