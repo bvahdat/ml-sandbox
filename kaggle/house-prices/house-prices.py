@@ -1,5 +1,3 @@
-from os import linesep as LS
-
 import numpy as np
 import pandas as pd
 
@@ -106,7 +104,7 @@ def create_models(X, y):
 
     models = {}
     for model_name, model_params in models_search_space.items():
-        clf = RandomizedSearchCV(model_params[0], model_params[1], scoring='neg_mean_squared_error')
+        clf = RandomizedSearchCV(model_params[0], model_params[1], scoring='neg_mean_squared_error', error_score='raise')
         search = clf.fit(X, y)
         models[model_name] = search.best_estimator_
         print(f'RMSE of the model {model_name}: {-search.best_score_:.3f} using the params: ({search.best_params_})')
