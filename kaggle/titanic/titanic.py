@@ -131,4 +131,4 @@ passengerId = test_data.PassengerId
 survived = pd.Series(data=y_test)
 answer = pd.DataFrame({'PassengerId': passengerId, 'Survived': survived})
 answer.to_csv('data/submission.csv', index=False)
-print('dumped submission.csv into the current folder')
+print('dumped data/submission.csv')

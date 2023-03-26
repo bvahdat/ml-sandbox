@@ -45,7 +45,7 @@ accuracy of the model LogisticRegression: 0.829 (+/- 0.028)
 accuracy of the model SVC: 0.833 (+/- 0.026)
 best model score is through: SVC with a mean accuracy of: 0.833
 best grid searched estimator is: SVC(C=1, gamma=0.1) with a mean cross-validated score of 0.833 and params {'C': 1, 'gamma': 0.1, 'kernel': 'rbf'}
-dumped submission.csv into the current folder
+dumped data/submission.csv
 
 ```
 

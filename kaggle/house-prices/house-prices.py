@@ -75,37 +75,37 @@ def create_pipeline():
 
 
 def create_models(X, y):
-    catboost_params_search_space = dict(iterations=randint(5000, 7000),
-                                        learning_rate=uniform(loc=.003, scale=.004),
-                                        depth=randint(3, 5))
+    br_params_search_space = dict(alpha_1=uniform(loc=1e-8, scale=1e-4),
+                                  alpha_2=uniform(loc=1e-8, scale=1e-4),
+                                  lambda_1=uniform(loc=1e-8, scale=1e-4),
+                                  lambda_2=uniform(loc=1e-8, scale=1e-4),
+                                  n_iter=randint(200, 400),
+                                  tol=uniform(loc=1e-4, scale=1e-2))
 
-    br_params_search_space = dict(n_iter=randint(250, 350),
-                                  tol=uniform(loc=.1, scale=.2),
-                                  alpha_1=uniform(loc=3.0, scale=6.0),
-                                  alpha_2=uniform(loc=7.0, scale=12.0),
-                                  lambda_1=uniform(loc=1.0, scale=2.0),
-                                  lambda_2=uniform(loc=3.0, scale=5.0))
+    catboost_params_search_space = dict(depth=randint(3, 5),
+                                        iterations=randint(5000, 7000),
+                                        learning_rate=uniform(loc=.003, scale=.004))
 
-    lightgbm_params_search_space = dict(num_leaves=randint(40, 50),
+    lightgbm_params_search_space = dict(learning_rate=uniform(loc=.1, scale=.2),
                                         max_depth=randint(1, 3),
-                                        learning_rate=uniform(loc=.1, scale=.2),
-                                        n_estimators=randint(250, 300))
-
-    ridge_params_search_space = dict(alpha=uniform(loc=600.0, scale=100.0))
+                                        n_estimators=randint(250, 300),
+                                        num_leaves=randint(40, 50))
 
     omp_params_search_space = dict(n_nonzero_coefs=randint(10, 20))
 
+    ridge_params_search_space = dict(alpha=uniform(loc=600.0, scale=100.0))
+
     models_search_space = {
-        'CatBoostRegressor': (CatBoostRegressor(eval_metric='RMSE', verbose=0), catboost_params_search_space),
         'BayesianRidge': (BayesianRidge(), br_params_search_space),
+        'CatBoostRegressor': (CatBoostRegressor(eval_metric='RMSE', verbose=0), catboost_params_search_space),
         'LGBMRegressor': (LGBMRegressor(), lightgbm_params_search_space),
-        'Ridge': (Ridge(), ridge_params_search_space),
-        'OrthogonalMatchingPursuit': (OrthogonalMatchingPursuit(), omp_params_search_space)
+        'OrthogonalMatchingPursuit': (OrthogonalMatchingPursuit(), omp_params_search_space),
+        'Ridge': (Ridge(), ridge_params_search_space)
     }
 
     models = []
     for model_name, model_params in models_search_space.items():
-        clf = RandomizedSearchCV(model_params[0], model_params[1], scoring='neg_mean_squared_error', error_score='raise')
+        clf = RandomizedSearchCV(model_params[0], model_params[1], scoring='neg_mean_squared_error', error_score='raise', n_iter=50)
         search = clf.fit(X, y)
         models.append((model_name, search.best_estimator_))
         print(f'RMSE of the model {model_name}: {-search.best_score_:.3f} using the params: ({search.best_params_})')
@@ -134,10 +134,10 @@ models = create_models(X, y)
 
 X_test = X_all[train_data_len:, :]
 
-ensemble = VotingRegressor(models, weights=[.4, .2, .2, .1, .1])
+ensemble = VotingRegressor(models, weights=[.2, .4, .2, .1, .1])
 ensemble.fit(X, y)
 predictions = np.exp(ensemble.predict(X_test))
 
 submission = pd.concat([test_data.Id, pd.Series(predictions, name='SalePrice')], axis=1)
 submission.to_csv('data/submission.csv', index=False)
-print('dumped submission.csv into the current folder')
+print('dumped data/submission.csv')
