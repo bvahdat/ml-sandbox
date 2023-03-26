@@ -58,4 +58,4 @@ Finally the created environment above can be removed through:
 conda remove --name house-prices --all
 ```
 
-The achieved `RMSE` score is `.12985`.
+The achieved `RMSE` score is `.1293`.
