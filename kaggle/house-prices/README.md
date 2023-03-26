@@ -44,18 +44,18 @@ fixing the skewness of the feature MiscVal: 21.958480324447216 => 5.216664735729
 fixing the skewness of the feature SqFtPerRoom: 0.8944512988686179 => 0.20125453591251607
 fixing the skewness of the feature Total_Home_Quality: 0.5644134713553347 => 1.7457553216068
 fixing the skewness of the feature HighQualSF: 1.2526794852953163 => 0.0013324960817563075
-RMSE of the model CatBoostRegressor: 0.017 using the params: ({'depth': 4, 'iterations': 5565, 'learning_rate': 0.006618210492762438})
-RMSE of the model BayesianRidge: 0.020 using the params: ({'alpha_1': 3.783116959972223, 'alpha_2': 17.39002783832507, 'lambda_1': 1.2090139155345752, 'lambda_2': 3.0134093948318363, 'n_iter': 255, 'tol': 0.2555704567788521})
-RMSE of the model LGBMRegressor: 0.018 using the params: ({'learning_rate': 0.1694231192958835, 'max_depth': 2, 'n_estimators': 298, 'num_leaves': 40})
-RMSE of the model Ridge: 0.021 using the params: ({'alpha': 613.3859889141887})
+RMSE of the model CatBoostRegressor: 0.017 using the params: ({'depth': 4, 'iterations': 6127, 'learning_rate': 0.005528758869264938})
+RMSE of the model BayesianRidge: 0.020 using the params: ({'alpha_1': 5.893137705017917, 'alpha_2': 13.754323064572418, 'lambda_1': 2.6366358703632606, 'lambda_2': 3.851420354568772, 'n_iter': 279, 'tol': 0.19587226652757794})
+RMSE of the model LGBMRegressor: 0.018 using the params: ({'learning_rate': 0.12429584510563073, 'max_depth': 2, 'n_estimators': 295, 'num_leaves': 47})
+RMSE of the model Ridge: 0.021 using the params: ({'alpha': 605.9703366061494})
 RMSE of the model OrthogonalMatchingPursuit: 0.020 using the params: ({'n_nonzero_coefs': 19})
 dumped submission.csv into the current folder
 ```
 
-Finally you can remove the created environment above if you want:
+Finally the created environment above can be removed through:
 
 ```
 conda remove --name house-prices --all
 ```
 
-The achieved `RMSE` score is `.12996`.
+The achieved `RMSE` score is `.12949`.

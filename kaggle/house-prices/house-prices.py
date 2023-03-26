@@ -7,6 +7,7 @@ from skewed_transformer import SkewedTransformer
 
 from sklearn import set_config
 from sklearn.compose import make_column_transformer, make_column_selector
+from sklearn.ensemble import VotingRegressor
 from sklearn.impute import KNNImputer
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.pipeline import make_pipeline
@@ -102,11 +103,11 @@ def create_models(X, y):
         'OrthogonalMatchingPursuit': (OrthogonalMatchingPursuit(), omp_params_search_space)
     }
 
-    models = {}
+    models = []
     for model_name, model_params in models_search_space.items():
         clf = RandomizedSearchCV(model_params[0], model_params[1], scoring='neg_mean_squared_error', error_score='raise')
         search = clf.fit(X, y)
-        models[model_name] = search.best_estimator_
+        models.append((model_name, search.best_estimator_))
         print(f'RMSE of the model {model_name}: {-search.best_score_:.3f} using the params: ({search.best_params_})')
 
     return models
@@ -132,13 +133,10 @@ y = np.log(y)
 models = create_models(X, y)
 
 X_test = X_all[train_data_len:, :]
-predictions = (
-    .4 * np.exp(models['CatBoostRegressor'].predict(X_test)) +
-    .2 * np.exp(models['BayesianRidge'].predict(X_test)) +
-    .2 * np.exp(models['LGBMRegressor'].predict(X_test)) +
-    .1 * np.exp(models['Ridge'].predict(X_test)) +
-    .1 * np.exp(models['OrthogonalMatchingPursuit'].predict(X_test))
-)
+
+ensemble = VotingRegressor(models, weights=[.4, .2, .2, .1, .1])
+ensemble.fit(X, y)
+predictions = np.exp(ensemble.predict(X_test))
 
 submission = pd.concat([test_data.Id, pd.Series(predictions, name='SalePrice')], axis=1)
 submission.to_csv('data/submission.csv', index=False)

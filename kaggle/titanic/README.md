@@ -49,7 +49,7 @@ dumped submission.csv into the current folder
 
 ```
 
-Finally you can remove the created environment above if you want:
+Finally the created environment above can be removed through:
 
 ```
 conda remove --name titanic --all
