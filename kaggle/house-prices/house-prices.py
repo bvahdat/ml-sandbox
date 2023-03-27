@@ -7,7 +7,7 @@ from skewed_transformer import SkewedTransformer
 
 from sklearn import set_config
 from sklearn.compose import make_column_transformer, make_column_selector
-from sklearn.ensemble import VotingRegressor
+from sklearn.ensemble import ExtraTreesRegressor, GradientBoostingRegressor, VotingRegressor
 from sklearn.impute import KNNImputer
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.pipeline import make_pipeline
@@ -71,7 +71,7 @@ def create_pipeline():
     set_config(transform_output='pandas')
 
     return make_column_transformer((make_pipeline(KNNImputer(), SkewedTransformer(), StandardScaler()), make_column_selector(dtype_include=np.number)),
-                                   (make_pipeline(OneHotEncoder(sparse_output=False)), make_column_selector(dtype_include='category')))
+                                   (make_pipeline(OneHotEncoder(sparse_output=False)), make_column_selector(dtype_include='O')))
 
 
 def create_models(X, y):
@@ -86,21 +86,22 @@ def create_models(X, y):
                                         iterations=randint(5000, 7000),
                                         learning_rate=uniform(loc=.003, scale=.004))
 
+    etr_params_search_space = dict(n_estimators=randint(100, 300))
+
     lightgbm_params_search_space = dict(learning_rate=uniform(loc=.1, scale=.2),
                                         max_depth=randint(1, 3),
                                         n_estimators=randint(250, 300),
                                         num_leaves=randint(40, 50))
 
-    omp_params_search_space = dict(n_nonzero_coefs=randint(10, 20))
-
-    ridge_params_search_space = dict(alpha=uniform(loc=600.0, scale=100.0))
+    gbr_params_search_space = dict(learning_rate=uniform(loc=.08, scale=.12),
+                                   n_estimators=randint(100, 300))
 
     models_search_space = {
         'BayesianRidge': (BayesianRidge(), br_params_search_space),
-        'CatBoostRegressor': (CatBoostRegressor(eval_metric='RMSE', verbose=0), catboost_params_search_space),
-        'LGBMRegressor': (LGBMRegressor(), lightgbm_params_search_space),
-        'OrthogonalMatchingPursuit': (OrthogonalMatchingPursuit(), omp_params_search_space),
-        'Ridge': (Ridge(), ridge_params_search_space)
+        'CatBoostRegressor': (CatBoostRegressor(verbose=0), catboost_params_search_space),
+        'ExtraTreesRegressor': (ExtraTreesRegressor(), etr_params_search_space),
+        'GradientBoostingRegressor': (GradientBoostingRegressor(), gbr_params_search_space),
+        'LGBMRegressor': (LGBMRegressor(), lightgbm_params_search_space)
     }
 
     models = []
@@ -108,7 +109,7 @@ def create_models(X, y):
         clf = RandomizedSearchCV(model_params[0], model_params[1], scoring='neg_mean_squared_error', error_score='raise', n_iter=50)
         search = clf.fit(X, y)
         models.append((model_name, search.best_estimator_))
-        print(f'RMSE of the model {model_name}: {-search.best_score_:.3f} using the params: ({search.best_params_})')
+        print(f'MSE of the model {model_name}: {-search.best_score_:.3f} using the params: ({search.best_params_})')
 
     return models
 
@@ -134,7 +135,7 @@ models = create_models(X, y)
 
 X_test = X_all[train_data_len:, :]
 
-ensemble = VotingRegressor(models, weights=[.2, .4, .2, .1, .1])
+ensemble = VotingRegressor(models, weights=[.1, .4, .1, .2, .2])
 ensemble.fit(X, y)
 predictions = np.exp(ensemble.predict(X_test))
 

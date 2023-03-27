@@ -44,11 +44,11 @@ fixing the skewness of the feature MiscVal: 21.958480324447216 => 5.216664735729
 fixing the skewness of the feature SqFtPerRoom: 0.8944512988686179 => 0.20125453591251607
 fixing the skewness of the feature Total_Home_Quality: 0.5644134713553347 => 1.7457553216068
 fixing the skewness of the feature HighQualSF: 1.2526794852953163 => 0.0013324960817563075
-RMSE of the model BayesianRidge: 0.019 using the params: ({'alpha_1': 6.89202333451876e-05, 'alpha_2': 5.448154694223585e-06, 'lambda_1': 6.40665950882123e-05, 'lambda_2': 9.936438800074921e-05, 'n_iter': 218, 'tol': 0.006817758329074847})
-RMSE of the model CatBoostRegressor: 0.017 using the params: ({'depth': 4, 'iterations': 5711, 'learning_rate': 0.006782824614883677})
-RMSE of the model LGBMRegressor: 0.018 using the params: ({'learning_rate': 0.10800542275957406, 'max_depth': 2, 'n_estimators': 297, 'num_leaves': 48})
-RMSE of the model OrthogonalMatchingPursuit: 0.020 using the params: ({'n_nonzero_coefs': 19})
-RMSE of the model Ridge: 0.021 using the params: ({'alpha': 600.4919112197284})
+MSE of the model BayesianRidge: 0.016 using the params: ({'alpha_1': 9.143366252323894e-05, 'alpha_2': 6.056412804338572e-05, 'lambda_1': 3.932602969444943e-05, 'lambda_2': 5.771580063805139e-06, 'n_iter': 343, 'tol': 0.0010141031057467208})
+MSE of the model CatBoostRegressor: 0.014 using the params: ({'depth': 4, 'iterations': 6539, 'learning_rate': 0.006470201433377933})
+MSE of the model ExtraTreesRegressor: 0.018 using the params: ({'n_estimators': 298})
+MSE of the model GradientBoostingRegressor: 0.015 using the params: ({'learning_rate': 0.1236467550710634, 'n_estimators': 199})
+MSE of the model LGBMRegressor: 0.016 using the params: ({'learning_rate': 0.1330158380805924, 'max_depth': 2, 'n_estimators': 290, 'num_leaves': 46})
 dumped data/submission.csv
 ```
 
@@ -58,4 +58,4 @@ Finally the created environment above can be removed through:
 conda remove --name house-prices --all
 ```
 
-The achieved `RMSE` score is `.1293`.
+The achieved `RMSE` score is `.12329`.
