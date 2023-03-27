@@ -15,40 +15,41 @@ python house-prices.py
 Which yields an output similar to:
 
 ```
-fixing the skewness of the feature LotFrontage: 1.3530572744614882 => 0.9360226268818653
-fixing the skewness of the feature LotArea: 12.829024853018762 => 0.505010100221913
-fixing the skewness of the feature OverallCond: 0.5706053117352524 => 0.7465665755888299
-fixing the skewness of the feature YearBuilt: 0.6001139748696814 => 0.6265373965143912
-fixing the skewness of the feature MasVnrArea: 2.600689567911466 => 0.5093891766464348
-fixing the skewness of the feature BsmtFinSF1: 1.4261539094248366 => 0.6181346864743393
-fixing the skewness of the feature BsmtFinSF2: 4.148242690691333 => 2.4602601705198235
-fixing the skewness of the feature BsmtUnfSF: 0.9194100373384432 => 2.160279070674231
-fixing the skewness of the feature TotalBsmtSF: 1.163361340420729 => 4.984243096687738
-fixing the skewness of the feature 1stFlrSF: 1.4703601055379227 => 0.06486101674723506
-fixing the skewness of the feature 2ndFlrSF: 0.8621178325657642 => 0.305206076056322
-fixing the skewness of the feature LowQualFinSF: 12.094977192517302 => 8.56209088801536
-fixing the skewness of the feature GrLivArea: 1.2700104075191514 => 0.013194362973261287
-fixing the skewness of the feature BsmtFullBath: 0.6247720505722756 => 0.42475071351567556
-fixing the skewness of the feature BsmtHalfBath: 3.9336155129159094 => 3.7767030363381187
-fixing the skewness of the feature HalfBath: 0.6949236492716564 => 0.5809901240903949
-fixing the skewness of the feature KitchenAbvGr: 4.304466641562935 => 3.5221608468499483
-fixing the skewness of the feature TotRmsAbvGrd: 0.7587568676624701 => 0.03512504311429316
-fixing the skewness of the feature Fireplaces: 0.733871770878103 => 0.2377095178068746
-fixing the skewness of the feature WoodDeckSF: 1.8433802126628294 => 0.15811426310497517
-fixing the skewness of the feature OpenPorchSF: 2.5364173160468444 => 0.04181879673885529
-fixing the skewness of the feature EnclosedPorch: 4.005950070504265 => 1.9620890015074595
-fixing the skewness of the feature 3SsnPorch: 11.381914394786643 => 8.829793819788062
-fixing the skewness of the feature ScreenPorch: 3.948723141292199 => 2.9474199516113737
-fixing the skewness of the feature PoolArea: 16.9070172435751 => 15.006047051771919
-fixing the skewness of the feature MiscVal: 21.958480324447216 => 5.216664735729965
-fixing the skewness of the feature SqFtPerRoom: 0.8944512988686179 => 0.20125453591251607
-fixing the skewness of the feature Total_Home_Quality: 0.5644134713553347 => 1.7457553216068
-fixing the skewness of the feature HighQualSF: 1.2526794852953163 => 0.0013324960817563075
-MSE of the model BayesianRidge: 0.016 using the params: ({'alpha_1': 9.143366252323894e-05, 'alpha_2': 6.056412804338572e-05, 'lambda_1': 3.932602969444943e-05, 'lambda_2': 5.771580063805139e-06, 'n_iter': 343, 'tol': 0.0010141031057467208})
-MSE of the model CatBoostRegressor: 0.014 using the params: ({'depth': 4, 'iterations': 6539, 'learning_rate': 0.006470201433377933})
-MSE of the model ExtraTreesRegressor: 0.018 using the params: ({'n_estimators': 298})
-MSE of the model GradientBoostingRegressor: 0.015 using the params: ({'learning_rate': 0.1236467550710634, 'n_estimators': 199})
-MSE of the model LGBMRegressor: 0.016 using the params: ({'learning_rate': 0.1330158380805924, 'max_depth': 2, 'n_estimators': 290, 'num_leaves': 46})
+fixing the skewness of the feature LotFrontage: 1.352361873402816 => 0.9355415599396448
+fixing the skewness of the feature LotArea: 12.822431401556724 => 0.50475055129892
+skip fixing the skewness of the feature OverallCond: 0.5703120502855311 => 0.7461828792022595
+skip fixing the skewness of the feature YearBuilt: 0.5998055475020266 => 0.6262153888824475
+fixing the skewness of the feature MasVnrArea: 2.5993529487505938 => 0.5091273771059409
+fixing the skewness of the feature BsmtFinSF1: 1.4254209404979759 => 0.6178169973982822
+fixing the skewness of the feature BsmtFinSF2: 4.146110709722618 => 2.4589957247646588
+skip fixing the skewness of the feature BsmtUnfSF: 0.9189375084031303 => 2.1591687996006197
+skip fixing the skewness of the feature TotalBsmtSF: 1.1627634332049621 => 4.981681454995597
+fixing the skewness of the feature 1stFlrSF: 1.4696044169256821 => 0.06482768155842679
+fixing the skewness of the feature 2ndFlrSF: 0.8616747488436027 => 0.30504921600877727
+fixing the skewness of the feature LowQualFinSF: 12.088761003370664 => 8.55769041866321
+fixing the skewness of the feature GrLivArea: 1.269357688230336 => 0.013187581757008814
+fixing the skewness of the feature BsmtFullBath: 0.6244509502363199 => 0.42453241374269063
+fixing the skewness of the feature BsmtHalfBath: 3.9315938391525584 => 3.774762007425795
+fixing the skewness of the feature HalfBath: 0.6945664946629632 => 0.5806915253872976
+fixing the skewness of the feature KitchenAbvGr: 4.302254369609591 => 3.520350639382798
+fixing the skewness of the feature TotRmsAbvGrd: 0.7583669060998621 => 0.035106990669190784
+fixing the skewness of the feature Fireplaces: 0.7334945989608231 => 0.2375873474793804
+fixing the skewness of the feature WoodDeckSF: 1.8424328111184782 => 0.1580330005981843
+fixing the skewness of the feature OpenPorchSF: 2.5351137294802557 => 0.041797304052571066
+fixing the skewness of the feature EnclosedPorch: 4.003891220540856 => 1.961080589820378
+fixing the skewness of the feature 3SsnPorch: 11.376064682827481 => 8.825255765053772
+fixing the skewness of the feature ScreenPorch: 3.9466937029936977 => 2.9459051310687494
+fixing the skewness of the feature PoolArea: 16.89832791614449 => 14.99833472413935
+fixing the skewness of the feature MiscVal: 21.9471948077491 => 5.213983641404962
+skip fixing the skewness of the feature MoSold: 0.7549550584404429 => 4.755543201058093
+fixing the skewness of the feature SqFtPerRoom: 0.8939915974266288 => 0.20115110154947938
+skip fixing the skewness of the feature Total_Home_Quality: 0.5641233921894949 => 1.7448580941784118
+fixing the skewness of the feature HighQualSF: 1.2520356731990414 => 0.0013318112480811782
+MSE of the model BayesianRidge: 0.017 using the params: ({'alpha_1': 3.255798514009886e-05, 'alpha_2': 5.037666119825658e-05, 'lambda_1': 2.2868956409738687e-05, 'lambda_2': 3.353566443636014e-05, 'n_iter': 218, 'tol': 0.0018028481097012528})
+MSE of the model CatBoostRegressor: 0.015 using the params: ({'depth': 4, 'iterations': 6969, 'learning_rate': 0.004449774779638977})
+MSE of the model ExtraTreesRegressor: 0.018 using the params: ({'n_estimators': 133})
+MSE of the model GradientBoostingRegressor: 0.016 using the params: ({'learning_rate': 0.096640971238242, 'n_estimators': 192})
+MSE of the model LGBMRegressor: 0.016 using the params: ({'learning_rate': 0.1785485240868303, 'max_depth': 2, 'n_estimators': 286, 'num_leaves': 44})
 dumped data/submission.csv
 ```
 
@@ -58,4 +59,4 @@ Finally the created environment above can be removed through:
 conda remove --name house-prices --all
 ```
 
-The achieved `RMSE` score is `.12329`.
+The achieved `RMSE` score is `.12291`.
