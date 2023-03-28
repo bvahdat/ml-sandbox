@@ -14,7 +14,7 @@ from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 from catboost import CatBoostRegressor
-from sklearn.linear_model import BayesianRidge, Ridge, OrthogonalMatchingPursuit
+from sklearn.linear_model import BayesianRidge
 from lightgbm import LGBMRegressor
 
 
@@ -88,13 +88,13 @@ def create_models(X, y):
 
     etr_params_search_space = dict(n_estimators=randint(100, 300))
 
+    gbr_params_search_space = dict(learning_rate=uniform(loc=.08, scale=.12),
+                                   n_estimators=randint(100, 300))
+
     lightgbm_params_search_space = dict(learning_rate=uniform(loc=.1, scale=.2),
                                         max_depth=randint(1, 3),
                                         n_estimators=randint(250, 300),
                                         num_leaves=randint(40, 50))
-
-    gbr_params_search_space = dict(learning_rate=uniform(loc=.08, scale=.12),
-                                   n_estimators=randint(100, 300))
 
     models_search_space = {
         'BayesianRidge': (BayesianRidge(), br_params_search_space),
@@ -106,7 +106,7 @@ def create_models(X, y):
 
     models = []
     for model_name, model_params in models_search_space.items():
-        clf = RandomizedSearchCV(model_params[0], model_params[1], scoring='neg_mean_squared_error', error_score='raise')
+        clf = RandomizedSearchCV(model_params[0], model_params[1], scoring='neg_mean_squared_error', error_score='raise', n_iter=50)
         search = clf.fit(X, y)
         models.append((model_name, search.best_estimator_))
         print(f'MSE of the model {model_name}: {-search.best_score_:.3f} using the params: ({search.best_params_})')

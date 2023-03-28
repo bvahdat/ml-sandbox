@@ -45,11 +45,11 @@ skip fixing the skewness of the feature MoSold: 0.7549550584404429 => 4.75554320
 fixing the skewness of the feature SqFtPerRoom: 0.8939915974266288 => 0.20115110154947938
 skip fixing the skewness of the feature Total_Home_Quality: 0.5641233921894949 => 1.7448580941784118
 fixing the skewness of the feature HighQualSF: 1.2520356731990414 => 0.0013318112480811782
-MSE of the model BayesianRidge: 0.017 using the params: ({'alpha_1': 3.255798514009886e-05, 'alpha_2': 5.037666119825658e-05, 'lambda_1': 2.2868956409738687e-05, 'lambda_2': 3.353566443636014e-05, 'n_iter': 218, 'tol': 0.0018028481097012528})
-MSE of the model CatBoostRegressor: 0.015 using the params: ({'depth': 4, 'iterations': 6969, 'learning_rate': 0.004449774779638977})
-MSE of the model ExtraTreesRegressor: 0.018 using the params: ({'n_estimators': 133})
-MSE of the model GradientBoostingRegressor: 0.016 using the params: ({'learning_rate': 0.096640971238242, 'n_estimators': 192})
-MSE of the model LGBMRegressor: 0.016 using the params: ({'learning_rate': 0.1785485240868303, 'max_depth': 2, 'n_estimators': 286, 'num_leaves': 44})
+MSE of the model BayesianRidge: 0.017 using the params: ({'alpha_1': 2.8047792741241233e-05, 'alpha_2': 3.418249288115132e-05, 'lambda_1': 4.9940845038123656e-05, 'lambda_2': 1.4627495111178158e-05, 'n_iter': 364, 'tol': 0.0003699595799883958})
+MSE of the model CatBoostRegressor: 0.014 using the params: ({'depth': 4, 'iterations': 5815, 'learning_rate': 0.0067978838957813556})
+MSE of the model ExtraTreesRegressor: 0.018 using the params: ({'n_estimators': 240})
+MSE of the model GradientBoostingRegressor: 0.015 using the params: ({'learning_rate': 0.17226145295670653, 'n_estimators': 274})
+MSE of the model LGBMRegressor: 0.016 using the params: ({'learning_rate': 0.14616417938961437, 'max_depth': 2, 'n_estimators': 292, 'num_leaves': 40})
 dumped data/submission.csv
 ```
 
@@ -59,4 +59,4 @@ Finally the created environment above can be removed through:
 conda remove --name house-prices --all
 ```
 
-The achieved `RMSE` score is `.12291`.
+The achieved `MSE` score is `.12272`.
