@@ -69,7 +69,8 @@ def build_transfer_learning_model():
     x = tf.keras.layers.GlobalAveragePooling2D()(x)
     x = tf.keras.layers.Dropout(.2)(x)
     outputs = tf.keras.layers.Dense(1)(x)
-    model = tf.keras.Model(inputs, outputs)
+    model = tf.keras.Model(inputs, outputs, name='pneumonia')
+
     model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=base_learning_rate),
                   loss=tf.keras.losses.BinaryCrossentropy(from_logits=True),
                   metrics=['accuracy'])
@@ -78,36 +79,43 @@ def build_transfer_learning_model():
     return model
 
 
+def train_model(model, train_ds, val_ds):
+    history = model.fit(train_ds, epochs=epochs, validation_data=val_ds)
+    loss, accuracy = model.evaluate(test_ds)
+    print(f'accuracy / loss on the test dataset: {accuracy} / {loss}')
+    return history
+
+
+def plot_accuracy_loss_curves(history):
+    acc = history.history['accuracy']
+    val_acc = history.history['val_accuracy']
+
+    loss = history.history['loss']
+    val_loss = history.history['val_loss']
+
+    plt.figure(figsize=(8, 8))
+    plt.subplot(2, 1, 1)
+    plt.plot(acc, label='Training Accuracy')
+    plt.plot(val_acc, label='Validation Accuracy')
+    plt.legend(loc='lower right')
+    plt.ylabel('Accuracy')
+    plt.ylim([min(plt.ylim()), 1])
+    plt.title('Training and Validation Accuracy')
+
+    plt.subplot(2, 1, 2)
+    plt.plot(loss, label='Training Loss')
+    plt.plot(val_loss, label='Validation Loss')
+    plt.legend(loc='upper right')
+    plt.ylabel('Cross Entropy')
+    plt.ylim([0, 1.0])
+    plt.title('Training and Validation Loss')
+    plt.xlabel('epoch')
+    plt.show()
+
+
 train_ds, val_ds, test_ds = load_images()
 print_train_dataset_details(train_ds)
 train_ds, val_ds, test_ds = use_buffered_prefetching(train_ds, val_ds, test_ds)
 model = build_transfer_learning_model()
-history = model.fit(train_ds, epochs=epochs, validation_data=val_ds)
-
-acc = history.history['accuracy']
-val_acc = history.history['val_accuracy']
-
-loss = history.history['loss']
-val_loss = history.history['val_loss']
-
-plt.figure(figsize=(8, 8))
-plt.subplot(2, 1, 1)
-plt.plot(acc, label='Training Accuracy')
-plt.plot(val_acc, label='Validation Accuracy')
-plt.legend(loc='lower right')
-plt.ylabel('Accuracy')
-plt.ylim([min(plt.ylim()), 1])
-plt.title('Training and Validation Accuracy')
-
-plt.subplot(2, 1, 2)
-plt.plot(loss, label='Training Loss')
-plt.plot(val_loss, label='Validation Loss')
-plt.legend(loc='upper right')
-plt.ylabel('Cross Entropy')
-plt.ylim([0, 1.0])
-plt.title('Training and Validation Loss')
-plt.xlabel('epoch')
-plt.show()
-
-loss, accuracy = model.evaluate(test_ds)
-print(f'accuracy / loss on the test dataset: {accuracy} / {loss}')
+history = train_model(model, train_ds, val_ds)
+plot_accuracy_loss_curves(history)
