@@ -2,13 +2,10 @@ import matplotlib.pyplot as plt
 
 import tensorflow as tf
 
-from tensorflow.keras import Sequential
-from tensorflow.keras.layers import RandomFlip, RandomRotation
+from tensorflow.keras import Input, Model, Sequential
+from tensorflow.keras.layers import Dense, Dropout, GlobalAveragePooling2D, RandomFlip, RandomRotation
 
-data_folder = './data'
-parent_dir = data_folder + '/chest_xray'
-zip_path = data_folder + '/chest_xray.zip'
-
+parent_dir = './data/chest_xray'
 train_dir = parent_dir + '/train'
 val_dir = parent_dir + '/val'
 test_dir = parent_dir + '/test'
@@ -16,7 +13,7 @@ test_dir = parent_dir + '/test'
 image_height = image_width = 224
 image_shape = (image_height, image_width) + (3,)
 batch_size = 32
-epochs = 30
+epochs = 15
 base_learning_rate = .0001
 
 
@@ -60,21 +57,22 @@ def build_transfer_learning_model():
     preprocess_input = tf.keras.applications.mobilenet_v2.preprocess_input
     base_model = tf.keras.applications.MobileNetV2(input_shape=image_shape, include_top=False, weights='imagenet')
     base_model.trainable = False
-    base_model.summary()
 
-    inputs = tf.keras.Input(shape=image_shape)
+    inputs = Input(shape=image_shape)
     x = data_augmentation(inputs)
     x = preprocess_input(x)
     x = base_model(x, training=False)
-    x = tf.keras.layers.GlobalAveragePooling2D()(x)
-    x = tf.keras.layers.Dropout(.2)(x)
-    outputs = tf.keras.layers.Dense(1)(x)
-    model = tf.keras.Model(inputs, outputs, name='pneumonia')
-
+    x = GlobalAveragePooling2D()(x)
+    x = Dropout(.2)(x)
+    x = Dense(500)(x)
+    x = Dropout(.2)(x)
+    x = Dense(250)(x)
+    x = Dropout(.2)(x)
+    outputs = Dense(1)(x)
+    model = Model(inputs, outputs, name='pneumonia')
     model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=base_learning_rate),
                   loss=tf.keras.losses.BinaryCrossentropy(from_logits=True),
                   metrics=['accuracy'])
-    model.summary()
 
     return model
 
@@ -82,7 +80,7 @@ def build_transfer_learning_model():
 def train_model(model, train_ds, val_ds):
     history = model.fit(train_ds, epochs=epochs, validation_data=val_ds)
     loss, accuracy = model.evaluate(test_ds)
-    print(f'accuracy / loss on the test dataset: {accuracy} / {loss}')
+    print(f'accuracy/loss on the test dataset: {accuracy:.3f}/{loss:.3f}')
     return history
 
 
