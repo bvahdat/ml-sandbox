@@ -2,13 +2,14 @@
 
 See [here](https://www.kaggle.com/datasets/paultimothymooney/chest-xray-pneumonia).
 
-# How to run
+# How to run (on GPU)
 
-I use [miniconda](https://docs.conda.io/en/latest/miniconda.html) through [Homebrew](https://formulae.brew.sh/cask/miniconda) on my Mac to setup the required environment:
+I use [miniconda](https://docs.conda.io/en/latest/miniconda.html) through [Homebrew](https://formulae.brew.sh/cask/miniconda) on my Mac to setup the required environment. See also the details [here](https://developer.apple.com/metal/tensorflow-plugin/) about how to setup `tensorflow-metal` PluggableDevice to accelerate training with Metal on Mac GPUs. Though it didn't work out-of-the-box the way documented by the previous link on macOS 13.2.1. So this is how I managed to properly install tensorflow with GPU accelaration (status March 2023):
 
 ```
-conda create -n pneumonia -c conda-forge matplotlib tensorflow python=3.10 
+conda create -n pneumonia -c apple matplotlib tensorflow-deps python=3.10
 conda activate pneumonia
+python -m pip install "tensorflow-macos==2.9.0" "tensorflow-metal==0.5.0" # it wouldn't work without the explicit versions!
 python pneumonia.py
 ```
 

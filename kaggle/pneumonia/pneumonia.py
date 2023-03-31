@@ -19,12 +19,12 @@ base_learning_rate = .0001
 
 def load_images():
 
-    def load_images_for(dir, height=image_height, width=image_width, batch=batch_size):
+    def load_images_for(directory):
         return tf.keras.utils.image_dataset_from_directory(
-            dir,
+            directory,
             shuffle=True,
-            batch_size=batch,
-            image_size=(height, width))
+            batch_size=batch_size,
+            image_size=(image_height, image_width))
 
     return [load_images_for(dir) for dir in [train_dir, val_dir, test_dir]]
 
@@ -38,12 +38,12 @@ def print_train_dataset_details(dataset):
         break
 
 
-def use_buffered_prefetching(train_ds, val_ds, test_ds):
+def use_buffered_prefetching(train, val, test):
 
     def use_buffered_prefetching_for(dataset):
         return dataset.cache().prefetch(buffer_size=tf.data.AUTOTUNE)
 
-    return [use_buffered_prefetching_for(dataset) for dataset in [train_ds, val_ds, test_ds]]
+    return [use_buffered_prefetching_for(dataset) for dataset in [train, val, test]]
 
 
 def build_transfer_learning_model():
@@ -77,19 +77,19 @@ def build_transfer_learning_model():
     return model
 
 
-def train_model(model, train_ds, val_ds):
-    history = model.fit(train_ds, epochs=epochs, validation_data=val_ds)
-    loss, accuracy = model.evaluate(test_ds)
+def train_model(m, train, val, test):
+    hist = m.fit(train, epochs=epochs, validation_data=val)
+    loss, accuracy = model.evaluate(test)
     print(f'accuracy/loss on the test dataset: {accuracy:.3f}/{loss:.3f}')
-    return history
+    return hist
 
 
-def plot_accuracy_loss_curves(history):
-    acc = history.history['accuracy']
-    val_acc = history.history['val_accuracy']
+def plot_accuracy_loss_curves(hist):
+    acc = hist.history['accuracy']
+    val_acc = hist.history['val_accuracy']
 
-    loss = history.history['loss']
-    val_loss = history.history['val_loss']
+    loss = hist.history['loss']
+    val_loss = hist.history['val_loss']
 
     plt.figure(figsize=(8, 8))
     plt.subplot(2, 1, 1)
@@ -115,5 +115,5 @@ train_ds, val_ds, test_ds = load_images()
 print_train_dataset_details(train_ds)
 train_ds, val_ds, test_ds = use_buffered_prefetching(train_ds, val_ds, test_ds)
 model = build_transfer_learning_model()
-history = train_model(model, train_ds, val_ds)
+history = train_model(model, train_ds, val_ds, test_ds)
 plot_accuracy_loss_curves(history)
