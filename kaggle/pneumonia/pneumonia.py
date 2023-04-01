@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import tensorflow as tf
 
 from tensorflow.keras import Input, Model, Sequential
-from tensorflow.keras.layers import Dense, Dropout, GlobalAveragePooling2D, RandomFlip, RandomRotation
+from tensorflow.keras.layers import BatchNormalization, Dense, Dropout, GlobalAveragePooling2D, RandomFlip, RandomRotation
 
 parent_dir = './data/chest_xray'
 train_dir = parent_dir + '/train'
@@ -14,7 +14,7 @@ image_height = image_width = 224
 image_shape = (image_height, image_width) + (3,)
 batch_size = 32
 epochs = 15
-base_learning_rate = .0001
+learning_rate = .0001
 
 
 def load_images():
@@ -64,13 +64,16 @@ def build_transfer_learning_model():
     x = base_model(x, training=False)
     x = GlobalAveragePooling2D()(x)
     x = Dropout(.2)(x)
-    x = Dense(500)(x)
-    x = Dropout(.2)(x)
-    x = Dense(250)(x)
-    x = Dropout(.2)(x)
+    x = Dense(512)(x)
+    x = BatchNormalization()(x)
+    x = Dense(128)(x)
+    x = BatchNormalization()(x)
+    x = Dense(32)(x)
+    x = BatchNormalization()(x)
+    x = Dense(8)(x)
     outputs = Dense(1)(x)
     model = Model(inputs, outputs, name='pneumonia')
-    model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=base_learning_rate),
+    model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate),
                   loss=tf.keras.losses.BinaryCrossentropy(from_logits=True),
                   metrics=['accuracy'])
 
@@ -81,6 +84,7 @@ def train_model(m, train, val, test):
     hist = m.fit(train, epochs=epochs, validation_data=val)
     loss, accuracy = model.evaluate(test)
     print(f'accuracy/loss on the test dataset: {accuracy:.3f}/{loss:.3f}')
+
     return hist
 
 
