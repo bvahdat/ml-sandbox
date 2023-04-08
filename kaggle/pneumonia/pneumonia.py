@@ -47,12 +47,10 @@ def use_buffered_prefetching(train, val, test):
 
 
 def build_transfer_learning_model():
-    # data augmentation on gpu would run into an error on macOS
-    with tf.device('/CPU:0'):
-        data_augmentation = Sequential([
-            RandomFlip('horizontal'),
-            RandomRotation(0.2),
-        ])
+    data_augmentation = Sequential([
+        RandomFlip('horizontal'),
+        RandomRotation(0.2)
+    ])
 
     preprocess_input = tf.keras.applications.mobilenet_v2.preprocess_input
     base_model = tf.keras.applications.MobileNetV2(input_shape=image_shape, include_top=False, weights='imagenet')
@@ -90,7 +88,7 @@ def train_model(m, train, val, test):
     return hist
 
 
-def plot_accuracy_loss_curves(hist):
+def plot_learning_curves(hist):
     acc = hist.history['accuracy']
     val_acc = hist.history['val_accuracy']
 
@@ -135,4 +133,4 @@ print_train_dataset_details(train_ds)
 train_ds, val_ds, test_ds = use_buffered_prefetching(train_ds, val_ds, test_ds)
 model = build_transfer_learning_model()
 history = train_model(model, train_ds, val_ds, test_ds)
-plot_accuracy_loss_curves(history)
+plot_learning_curves(history)
