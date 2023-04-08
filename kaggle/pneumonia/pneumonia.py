@@ -13,7 +13,7 @@ test_dir = parent_dir + '/test'
 image_height = image_width = 224
 image_shape = (image_height, image_width) + (3,)
 batch_size = 32
-epochs = 15
+epochs = 30
 learning_rate = .0001
 
 
@@ -75,15 +75,17 @@ def build_transfer_learning_model():
     model = Model(inputs, outputs, name='pneumonia')
     model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate),
                   loss=tf.keras.losses.BinaryCrossentropy(from_logits=True),
-                  metrics=['accuracy'])
+                  metrics=[tf.keras.metrics.BinaryAccuracy(name='accuracy'),
+                           tf.keras.metrics.Precision(name='precision'),
+                           tf.keras.metrics.Recall(name='recall')])
 
     return model
 
 
 def train_model(m, train, val, test):
     hist = m.fit(train, epochs=epochs, validation_data=val)
-    loss, accuracy = model.evaluate(test)
-    print(f'accuracy/loss on the test dataset: {accuracy:.3f}/{loss:.3f}')
+    loss, accuracy, precision, recall = m.evaluate(test)
+    print(f'the accuracy/precision/recall scores on the test dataset: {accuracy:.3f}/{precision:.3f}/{recall:.3f} with a loss of: {loss:.3f}')
 
     return hist
 
@@ -92,6 +94,12 @@ def plot_accuracy_loss_curves(hist):
     acc = hist.history['accuracy']
     val_acc = hist.history['val_accuracy']
 
+    precision = hist.history['precision']
+    val_precision = hist.history['val_precision']
+
+    recall = hist.history['recall']
+    val_recall = hist.history['val_recall']
+
     loss = hist.history['loss']
     val_loss = hist.history['val_loss']
 
@@ -99,16 +107,23 @@ def plot_accuracy_loss_curves(hist):
     plt.subplot(2, 1, 1)
     plt.plot(acc, label='Training Accuracy')
     plt.plot(val_acc, label='Validation Accuracy')
+
+    plt.plot(precision, label='Training Precision')
+    plt.plot(val_precision, label='Validation Precision')
+
+    plt.plot(recall, label='Training Recall')
+    plt.plot(val_recall, label='Validation Recall')
+
     plt.legend(loc='lower right')
     plt.ylabel('Accuracy')
     plt.ylim([min(plt.ylim()), 1])
-    plt.title('Training and Validation Accuracy')
+    plt.title('Training and Validation Accuracy, Precision and Recall')
 
     plt.subplot(2, 1, 2)
     plt.plot(loss, label='Training Loss')
     plt.plot(val_loss, label='Validation Loss')
     plt.legend(loc='upper right')
-    plt.ylabel('Cross Entropy')
+    plt.ylabel('Binary Cross Entropy')
     plt.ylim([0, 1.0])
     plt.title('Training and Validation Loss')
     plt.xlabel('epoch')
