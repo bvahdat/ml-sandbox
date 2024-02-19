@@ -4,7 +4,9 @@ from name_transformer import NameTransformer
 
 import numpy as np
 import pandas as pd
+import pyarrow
 
+import sklearn
 from sklearn.compose import make_column_transformer
 from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.impute import KNNImputer, SimpleImputer
@@ -15,6 +17,9 @@ from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.svm import SVC
 
+print('pandas version: %s' % pd.__version__)
+print('pyarrow version: %s' % pyarrow.__version__)
+print('sklearn version: %s' % sklearn.__version__)
 
 def prepare_features(*dataframes):
     prepared = []

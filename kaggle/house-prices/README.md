@@ -7,7 +7,7 @@ See [here](https://www.kaggle.com/c/house-prices-advanced-regression-techniques)
 I use [miniconda](https://docs.conda.io/en/latest/miniconda.html) through [Homebrew](https://formulae.brew.sh/cask/miniconda) on my Mac to setup the required environment:
 
 ```
-conda create -n house-prices -c conda-forge catboost lightgbm pandas scikit-learn python=3.10 
+conda create -n house-prices -c conda-forge catboost==1.2.2 lightgbm==4.3.0 pandas==2.2.0 pyarrow==15.0.0 scikit-learn==1.4.0 python=3.10.13
 conda activate house-prices
 python house-prices.py
 ```
@@ -15,6 +15,11 @@ python house-prices.py
 Which yields an output similar to:
 
 ```
+catboost version: 1.2.2
+lightgbm version: 4.3.0
+pandas version: 2.2.0
+pyarrow version: 15.0.0
+sklearn version: 1.4.0
 fixing the skewness of the feature LotFrontage: 1.352361873402816 => 0.9355415599396448
 fixing the skewness of the feature LotArea: 12.822431401556724 => 0.50475055129892
 skip fixing the skewness of the feature OverallCond: 0.5703120502855311 => 0.7461828792022595
@@ -45,11 +50,11 @@ skip fixing the skewness of the feature MoSold: 0.7549550584404429 => 4.75554320
 fixing the skewness of the feature SqFtPerRoom: 0.8939915974266288 => 0.20115110154947938
 skip fixing the skewness of the feature Total_Home_Quality: 0.5641233921894949 => 1.7448580941784118
 fixing the skewness of the feature HighQualSF: 1.2520356731990414 => 0.0013318112480811782
-MSE of the model BayesianRidge: 0.017 using the params: ({'alpha_1': 2.8047792741241233e-05, 'alpha_2': 3.418249288115132e-05, 'lambda_1': 4.9940845038123656e-05, 'lambda_2': 1.4627495111178158e-05, 'n_iter': 364, 'tol': 0.0003699595799883958})
-MSE of the model CatBoostRegressor: 0.014 using the params: ({'depth': 4, 'iterations': 5815, 'learning_rate': 0.0067978838957813556})
-MSE of the model ExtraTreesRegressor: 0.018 using the params: ({'n_estimators': 240})
-MSE of the model GradientBoostingRegressor: 0.015 using the params: ({'learning_rate': 0.17226145295670653, 'n_estimators': 274})
-MSE of the model LGBMRegressor: 0.016 using the params: ({'learning_rate': 0.14616417938961437, 'max_depth': 2, 'n_estimators': 292, 'num_leaves': 40})
+MSE of the model BayesianRidge: 0.017 using the params: ({'alpha_1': 4.292637345887363e-06, 'alpha_2': 3.5910479175977224e-05, 'lambda_1': 1.12397859959266e-05, 'lambda_2': 6.448037694757948e-06, 'max_iter': 225, 'tol': 0.0013377754260487595})
+MSE of the model CatBoostRegressor: 0.014 using the params: ({'depth': 4, 'iterations': 6758, 'learning_rate': 0.005963014595584123})
+MSE of the model ExtraTreesRegressor: 0.018 using the params: ({'n_estimators': 171})
+MSE of the model GradientBoostingRegressor: 0.015 using the params: ({'learning_rate': 0.10741679115723948, 'n_estimators': 231})
+MSE of the model LGBMRegressor: 0.016 using the params: ({'learning_rate': 0.15248233985506102, 'max_depth': 2, 'n_estimators': 298, 'num_leaves': 42})
 dumped data/submission.csv
 ```
 
@@ -59,4 +64,4 @@ Finally the created environment above can be removed through:
 conda remove --name house-prices --all
 ```
 
-The achieved `MSE` score is `.12272`.
+The achieved `MSE` score is `.12219`.

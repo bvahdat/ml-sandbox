@@ -1,3 +1,6 @@
+import os
+
+import matplotlib
 import matplotlib.pyplot as plt
 
 import tensorflow as tf
@@ -12,10 +15,12 @@ test_dir = parent_dir + '/test'
 
 image_height = image_width = 224
 image_shape = (image_height, image_width) + (3,)
-batch_size = 32
-epochs = 30
-learning_rate = .0001
 
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1' # metal_plugin/src/kernels/stateless_random_op.cc:282] Note the GPU implementation does not produce the same series as CPU implementation.
+
+print('matplotlib version: %s' % matplotlib.__version__)
+print('tensorflow version: %s' % tf.__version__)
+print('number of GPUs available: %d' % len(tf.config.list_physical_devices('GPU')))
 
 def load_images():
 
@@ -23,7 +28,7 @@ def load_images():
         return tf.keras.utils.image_dataset_from_directory(
             directory,
             shuffle=True,
-            batch_size=batch_size,
+            batch_size=32,
             image_size=(image_height, image_width))
 
     return [load_images_for(dir) for dir in [train_dir, val_dir, test_dir]]
@@ -71,7 +76,8 @@ def build_transfer_learning_model():
     x = Dense(8)(x)
     outputs = Dense(1)(x)
     model = Model(inputs, outputs, name='pneumonia')
-    model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate),
+    # WARNING:absl:At this time, the v2.11+ optimizer `tf.keras.optimizers.Adam` runs slowly on M1/M2 Macs, please use the legacy Keras optimizer instead, located at `tf.keras.optimizers.legacy.Adam`.
+    model.compile(optimizer=tf.keras.optimizers.legacy.Adam(learning_rate=.0001),
                   loss=tf.keras.losses.BinaryCrossentropy(from_logits=True),
                   metrics=[tf.keras.metrics.BinaryAccuracy(name='accuracy'),
                            tf.keras.metrics.Precision(name='precision'),
@@ -81,7 +87,7 @@ def build_transfer_learning_model():
 
 
 def train_model(m, train, val, test):
-    hist = m.fit(train, epochs=epochs, validation_data=val)
+    hist = m.fit(train, epochs=40, validation_data=val)
     loss, accuracy, precision, recall = m.evaluate(test)
     print(f'the accuracy/precision/recall scores on the test dataset: {accuracy:.3f}/{precision:.3f}/{recall:.3f} with a loss of: {loss:.3f}')
 

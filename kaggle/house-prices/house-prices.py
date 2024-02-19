@@ -17,6 +17,14 @@ from catboost import CatBoostRegressor
 from sklearn.linear_model import BayesianRidge
 from lightgbm import LGBMRegressor
 
+import catboost, lightgbm, pyarrow, sklearn
+
+print('catboost version: %s' % catboost.__version__)
+print('lightgbm version: %s' % lightgbm.__version__)
+print('pandas version: %s' % pd.__version__)
+print('pyarrow version: %s' % pyarrow.__version__)
+print('sklearn version: %s' % sklearn.__version__)
+
 
 def prepare_features(dataframe):
     df = dataframe.copy()
@@ -79,7 +87,7 @@ def create_models(X, y):
                                   alpha_2=uniform(loc=1e-8, scale=1e-4),
                                   lambda_1=uniform(loc=1e-8, scale=1e-4),
                                   lambda_2=uniform(loc=1e-8, scale=1e-4),
-                                  n_iter=randint(200, 400),
+                                  max_iter=randint(200, 400),
                                   tol=uniform(loc=1e-4, scale=1e-2))
 
     catboost_params_search_space = dict(depth=randint(3, 5),
@@ -101,7 +109,7 @@ def create_models(X, y):
         'CatBoostRegressor': (CatBoostRegressor(verbose=0), catboost_params_search_space),
         'ExtraTreesRegressor': (ExtraTreesRegressor(), etr_params_search_space),
         'GradientBoostingRegressor': (GradientBoostingRegressor(), gbr_params_search_space),
-        'LGBMRegressor': (LGBMRegressor(), lightgbm_params_search_space)
+        'LGBMRegressor': (LGBMRegressor(verbose=-1), lightgbm_params_search_space)
     }
 
     models = []
