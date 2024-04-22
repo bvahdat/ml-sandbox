@@ -15,5 +15,5 @@ jupyter notebook returns.ipynb
 Finally the created environment above can be removed through:
 
 ```
-conda remove --name returns --all
+conda deactivate && conda remove --name returns --all
 ```

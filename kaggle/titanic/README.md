@@ -54,7 +54,7 @@ dumped data/submission.csv
 Finally the created environment above can be removed through:
 
 ```
-conda remove --name titanic --all
+conda deactivate && conda remove --name titanic --all
 ```
 
 The achieved accuracy score is `.78708`.

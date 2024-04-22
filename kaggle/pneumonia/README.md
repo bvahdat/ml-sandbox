@@ -137,7 +137,7 @@ The learning curves of the accuracy/precision/recall metrics look as the followi
 Finally the created environment above can be removed through:
 
 ```
-conda remove --name pneumonia --all
+conda deactivate && conda remove --name pneumonia --all
 ```
 
 The achieved accuracy/precision/recall scores on the test dataset is `.867/.887/.903` as it can be spotted by the last line of the log output above.

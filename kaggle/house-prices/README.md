@@ -61,7 +61,7 @@ dumped data/submission.csv
 Finally the created environment above can be removed through:
 
 ```
-conda remove --name house-prices --all
+conda deactivate && conda remove --name house-prices --all
 ```
 
 The achieved `MSE` score is `.12219`.
