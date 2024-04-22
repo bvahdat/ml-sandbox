@@ -28,7 +28,7 @@ def load_images():
         return tf.keras.utils.image_dataset_from_directory(
             directory,
             shuffle=True,
-            batch_size=32,
+            batch_size=64,
             image_size=(image_height, image_width))
 
     return [load_images_for(dir) for dir in [train_dir, val_dir, test_dir]]
@@ -77,7 +77,7 @@ def build_transfer_learning_model():
     outputs = Dense(1)(x)
     model = Model(inputs, outputs, name='pneumonia')
     # WARNING:absl:At this time, the v2.11+ optimizer `tf.keras.optimizers.Adam` runs slowly on M1/M2 Macs, please use the legacy Keras optimizer instead, located at `tf.keras.optimizers.legacy.Adam`.
-    model.compile(optimizer=tf.keras.optimizers.legacy.Adam(learning_rate=.0001),
+    model.compile(optimizer=tf.keras.optimizers.legacy.Adam(learning_rate=.00001),
                   loss=tf.keras.losses.BinaryCrossentropy(from_logits=True),
                   metrics=[tf.keras.metrics.BinaryAccuracy(name='accuracy'),
                            tf.keras.metrics.Precision(name='precision'),
@@ -87,7 +87,7 @@ def build_transfer_learning_model():
 
 
 def train_model(m, train, val, test):
-    hist = m.fit(train, epochs=40, validation_data=val)
+    hist = m.fit(train, epochs=50, validation_data=val)
     loss, accuracy, precision, recall = m.evaluate(test)
     print(f'the accuracy/precision/recall scores on the test dataset: {accuracy:.3f}/{precision:.3f}/{recall:.3f} with a loss of: {loss:.3f}')
 
